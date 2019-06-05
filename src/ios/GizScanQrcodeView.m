@@ -117,7 +117,7 @@
         
         AVCaptureMetadataOutput *output = [[AVCaptureMetadataOutput alloc] init];
         [self.session addOutput:output];
-        output.metadataObjectTypes = @[AVMetadataObjectTypeQRCode];
+        output.metadataObjectTypes = @[AVMetadataObjectTypeQRCode, AVMetadataObjectTypeEAN13Code, AVMetadataObjectTypeEAN8Code, AVMetadataObjectTypeCode128Code, AVMetadataObjectTypeCode39Code, AVMetadataObjectTypeCode93Code, AVMetadataObjectTypeInterleaved2of5Code];
         [output setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
         self.output = output;
         completed(YES);
@@ -230,12 +230,10 @@
 #pragma mark - AVCaptureMetadataOutputObjectsDelegate
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputMetadataObjects:(NSArray *)metadataObjects fromConnection:(AVCaptureConnection *)connection {
     AVMetadataMachineReadableCodeObject *metadataObj = [metadataObjects firstObject];
-    if ([metadataObj.type isEqualToString:AVMetadataObjectTypeQRCode]) {
-        NSString *result = metadataObj.stringValue;
-        if (result) {
-            [self stopScan];
-            [self.delegate scanSuccess:result];
-        }
+    NSString *result = metadataObj.stringValue;
+    if (result) {
+        [self stopScan];
+        [self.delegate scanSuccess:result];
     }
 }
 
