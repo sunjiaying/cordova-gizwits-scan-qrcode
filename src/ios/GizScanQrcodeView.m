@@ -58,12 +58,40 @@
                                                    object:nil];
         
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sessionDidStartRunning) name:AVCaptureSessionDidStartRunningNotification object:nil];
+        
+        // 监听屏幕旋转
+        if (![UIDevice currentDevice].generatesDeviceOrientationNotifications) {
+            [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+        }
+        [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(handleDeviceOrientationChange:)name:UIDeviceOrientationDidChangeNotification object:nil];
     }];
 }
 
 - (void)sessionDidStartRunning{
     if (self.loadingView) {
         [self.loadingView removeFromSuperview];
+    }
+}
+
+- (void) handleDeviceOrientationChange: (NSNotification * ) notification {
+     AVCaptureConnection *previewLayerConnection = self.previewLayer.connection;
+     previewLayerConnection.videoOrientation =  [self videoOrientationFromCurrentDeviceOrientation];
+}
+
+- (AVCaptureVideoOrientation) videoOrientationFromCurrentDeviceOrientation {
+    switch ([[UIApplication sharedApplication]statusBarOrientation]) {
+        case UIInterfaceOrientationPortrait: {
+            return AVCaptureVideoOrientationPortrait;
+        }
+        case UIInterfaceOrientationLandscapeLeft: {
+            return AVCaptureVideoOrientationLandscapeLeft;
+        }
+        case UIInterfaceOrientationLandscapeRight: {
+            return AVCaptureVideoOrientationLandscapeRight;
+        }
+        case UIInterfaceOrientationPortraitUpsideDown: {
+            return AVCaptureVideoOrientationPortraitUpsideDown;
+        }
     }
 }
 
@@ -133,6 +161,10 @@
     [self.captureView.layer addSublayer:previewLayer];
     previewLayer.frame = self.layer.bounds;
     self.previewLayer = previewLayer;
+    
+    // 页面一进入的时候 先监听页面方向 然后矫正摄像头方向
+    AVCaptureConnection *previewLayerConnection = self.previewLayer.connection;
+    previewLayerConnection.videoOrientation =  [self videoOrientationFromCurrentDeviceOrientation];
 }
 
 - (void)addMaskLayer {
